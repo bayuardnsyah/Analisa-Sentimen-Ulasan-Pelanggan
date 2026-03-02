@@ -1,0 +1,1041 @@
+<!DOCTYPE html>
+<html lang="id">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Analisa Sentimen - Catering Tiga Putra</title>
+<link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@300;400;500;600;700;800&family=Playfair+Display:wght@700&display=swap" rel="stylesheet">
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.min.js"></script>
+<style>
+  :root {
+    --primary: #1a3c5e;
+    --primary-light: #2563a8;
+    --accent: #e8a030;
+    --accent2: #e85030;
+    --bg: #f0f4f8;
+    --surface: #ffffff;
+    --surface2: #e8edf5;
+    --text: #1a2535;
+    --text2: #4a5a70;
+    --border: #c8d4e4;
+    --success: #2ecc71;
+    --warning: #f39c12;
+    --danger: #e74c3c;
+    --positive: #27ae60;
+    --negative: #e74c3c;
+    --neutral: #7f8c8d;
+    --radius: 12px;
+    --shadow: 0 4px 24px rgba(26,60,94,0.10);
+    --shadow2: 0 2px 8px rgba(26,60,94,0.08);
+  }
+  * { margin:0; padding:0; box-sizing:border-box; }
+  body { font-family:'Plus Jakarta Sans',sans-serif; background:var(--bg); color:var(--text); min-height:100vh; }
+
+  /* LOGIN */
+  #login-screen {
+    min-height:100vh; display:flex; align-items:center; justify-content:center;
+    background: linear-gradient(135deg, #1a3c5e 0%, #2563a8 60%, #e8a030 100%);
+  }
+  .login-card {
+    background:var(--surface); border-radius:24px; padding:56px 48px 48px;
+    width:420px; box-shadow:0 20px 60px rgba(26,60,94,0.25); text-align:center;
+  }
+  .login-logo {
+    width:90px; height:90px; border-radius:50%; background:linear-gradient(135deg,var(--primary),var(--accent));
+    display:flex; align-items:center; justify-content:center; margin:0 auto 20px;
+    font-family:'Playfair Display',serif; color:#fff; font-size:28px; font-weight:700;
+    box-shadow:0 8px 24px rgba(26,60,94,0.3);
+  }
+  .login-title { font-family:'Playfair Display',serif; font-size:26px; color:var(--primary); margin-bottom:6px; }
+  .login-sub { color:var(--text2); font-size:13px; margin-bottom:36px; }
+  .form-group { margin-bottom:18px; text-align:left; }
+  .form-group label { font-size:13px; font-weight:600; color:var(--text2); display:block; margin-bottom:6px; }
+  .form-group input, .form-group select, .form-group textarea {
+    width:100%; padding:12px 16px; border:2px solid var(--border); border-radius:10px;
+    font-family:inherit; font-size:14px; color:var(--text); background:var(--bg);
+    transition:border-color .2s, box-shadow .2s; outline:none;
+  }
+  .form-group input:focus, .form-group select:focus, .form-group textarea:focus {
+    border-color:var(--primary-light); box-shadow:0 0 0 3px rgba(37,99,168,0.12);
+  }
+  .form-group textarea { resize:vertical; min-height:90px; }
+  .btn {
+    padding:11px 24px; border:none; border-radius:10px; font-family:inherit; font-size:14px;
+    font-weight:600; cursor:pointer; transition:all .2s; display:inline-flex; align-items:center; gap:6px;
+  }
+  .btn-primary { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; box-shadow:0 4px 12px rgba(26,60,94,0.25); }
+  .btn-primary:hover { transform:translateY(-1px); box-shadow:0 6px 18px rgba(26,60,94,0.32); }
+  .btn-accent { background:linear-gradient(135deg,var(--accent),#f0b050); color:#fff; }
+  .btn-danger { background:linear-gradient(135deg,#e74c3c,#c0392b); color:#fff; }
+  .btn-success { background:linear-gradient(135deg,#27ae60,#219a52); color:#fff; }
+  .btn-outline { background:transparent; border:2px solid var(--border); color:var(--text2); }
+  .btn-outline:hover { border-color:var(--primary); color:var(--primary); }
+  .btn-full { width:100%; justify-content:center; padding:14px; font-size:16px; }
+  .btn-sm { padding:7px 14px; font-size:12px; }
+
+  /* MAIN APP */
+  #app { display:none; min-height:100vh; }
+  .topbar {
+    background:linear-gradient(135deg,var(--primary) 0%,var(--primary-light) 100%);
+    padding:0 32px; height:68px; display:flex; align-items:center; justify-content:space-between;
+    box-shadow:0 4px 20px rgba(26,60,94,0.25); position:sticky; top:0; z-index:100;
+  }
+  .topbar-brand { display:flex; align-items:center; gap:14px; }
+  .topbar-logo {
+    width:42px; height:42px; border-radius:50%; background:linear-gradient(135deg,var(--accent),#f0b050);
+    display:flex; align-items:center; justify-content:center; font-family:'Playfair Display',serif;
+    color:#fff; font-size:14px; font-weight:700;
+  }
+  .topbar-title { color:#fff; font-size:16px; font-weight:700; line-height:1.2; }
+  .topbar-sub { color:rgba(255,255,255,0.7); font-size:11px; }
+  .topbar-actions { display:flex; align-items:center; gap:12px; }
+  .topbar-user { color:rgba(255,255,255,0.85); font-size:13px; font-weight:500; }
+  .btn-logout { background:rgba(255,255,255,0.15); color:#fff; border:1px solid rgba(255,255,255,0.3); padding:8px 16px; font-size:13px; border-radius:8px; }
+  .btn-logout:hover { background:rgba(255,255,255,0.25); }
+
+  .layout { display:flex; min-height:calc(100vh - 68px); }
+  .sidebar {
+    width:240px; background:var(--surface); border-right:1px solid var(--border);
+    padding:24px 16px; flex-shrink:0;
+  }
+  .sidebar-section { margin-bottom:24px; }
+  .sidebar-label { font-size:10px; font-weight:700; color:var(--text2); text-transform:uppercase; letter-spacing:1px; padding:0 12px; margin-bottom:8px; }
+  .nav-item {
+    display:flex; align-items:center; gap:10px; padding:10px 12px; border-radius:10px;
+    color:var(--text2); font-size:13px; font-weight:500; cursor:pointer; transition:all .2s; margin-bottom:2px;
+  }
+  .nav-item:hover { background:var(--surface2); color:var(--primary); }
+  .nav-item.active { background:linear-gradient(135deg,rgba(26,60,94,0.1),rgba(37,99,168,0.08)); color:var(--primary); font-weight:600; }
+  .nav-icon { width:20px; text-align:center; font-size:15px; }
+
+  .main-content { flex:1; padding:32px; overflow-auto; }
+  .page { display:none; }
+  .page.active { display:block; }
+
+  /* DASHBOARD / MENU UTAMA */
+  .menu-grid { display:grid; grid-template-columns:repeat(3,1fr); gap:20px; margin-top:24px; }
+  .menu-card {
+    background:var(--surface); border-radius:var(--radius); padding:32px 20px;
+    text-align:center; cursor:pointer; transition:all .25s; border:2px solid transparent;
+    box-shadow:var(--shadow2);
+  }
+  .menu-card:hover { transform:translateY(-4px); box-shadow:var(--shadow); border-color:var(--primary-light); }
+  .menu-card-icon { font-size:40px; margin-bottom:12px; }
+  .menu-card-title { font-weight:700; color:var(--primary); font-size:14px; }
+
+  /* SECTION HEADERS */
+  .section-header { display:flex; align-items:center; justify-content:space-between; margin-bottom:24px; }
+  .section-title { font-family:'Playfair Display',serif; font-size:22px; color:var(--primary); }
+  .section-badge { background:var(--primary); color:#fff; font-size:11px; font-weight:600; padding:4px 10px; border-radius:20px; }
+
+  /* FORM CARD */
+  .form-card { background:var(--surface); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow2); margin-bottom:24px; }
+  .form-card-title { font-size:15px; font-weight:700; color:var(--primary); margin-bottom:20px; padding-bottom:12px; border-bottom:2px solid var(--surface2); }
+  .form-row { display:grid; grid-template-columns:1fr 1fr; gap:16px; }
+  .form-row-3 { display:grid; grid-template-columns:1fr 1fr 1fr; gap:16px; }
+  .radio-group { display:flex; gap:16px; align-items:center; padding-top:8px; }
+  .radio-item { display:flex; align-items:center; gap:6px; cursor:pointer; font-size:13px; }
+
+  /* TABLE */
+  .table-card { background:var(--surface); border-radius:var(--radius); box-shadow:var(--shadow2); overflow:hidden; margin-bottom:24px; }
+  .table-toolbar { padding:16px 20px; display:flex; align-items:center; justify-content:space-between; border-bottom:1px solid var(--surface2); }
+  .search-box { display:flex; gap:8px; align-items:center; }
+  .search-input { padding:9px 14px; border:2px solid var(--border); border-radius:8px; font-size:13px; width:220px; outline:none; font-family:inherit; }
+  .search-input:focus { border-color:var(--primary-light); }
+  table { width:100%; border-collapse:collapse; }
+  th { background:linear-gradient(135deg,var(--primary),var(--primary-light)); color:#fff; padding:12px 16px; text-align:left; font-size:12px; font-weight:600; text-transform:uppercase; letter-spacing:0.5px; }
+  td { padding:12px 16px; border-bottom:1px solid var(--surface2); font-size:13px; color:var(--text); }
+  tr:hover td { background:var(--surface2); }
+  tr:last-child td { border-bottom:none; }
+  .action-btns { display:flex; gap:6px; }
+  .badge { padding:3px 10px; border-radius:20px; font-size:11px; font-weight:600; }
+  .badge-positive { background:#d5f5e3; color:#1e8449; }
+  .badge-negative { background:#fdecea; color:#c0392b; }
+  .badge-neutral { background:#f0f3f4; color:#626567; }
+
+  /* LAPORAN */
+  .laporan-layout { display:grid; grid-template-columns:220px 1fr; gap:24px; }
+  .laporan-menu { background:var(--surface); border-radius:var(--radius); padding:20px 16px; box-shadow:var(--shadow2); height:fit-content; }
+  .laporan-menu-item { padding:10px 14px; border-radius:8px; cursor:pointer; font-size:13px; font-weight:500; color:var(--text2); margin-bottom:4px; transition:all .2s; border:1px solid transparent; }
+  .laporan-menu-item:hover { background:var(--surface2); color:var(--primary); }
+  .laporan-menu-item.active { background:linear-gradient(135deg,rgba(26,60,94,0.08),rgba(37,99,168,0.06)); color:var(--primary); font-weight:600; border-color:rgba(37,99,168,0.2); }
+  .laporan-content { background:var(--surface); border-radius:var(--radius); padding:28px; box-shadow:var(--shadow2); }
+  .laporan-title { font-size:18px; font-weight:700; color:var(--primary); margin-bottom:20px; }
+  .date-filter { display:flex; align-items:center; gap:10px; margin-bottom:20px; padding:16px; background:var(--bg); border-radius:10px; }
+  .date-filter label { font-size:12px; font-weight:600; color:var(--text2); }
+  .date-input { padding:8px 12px; border:2px solid var(--border); border-radius:8px; font-size:13px; outline:none; font-family:inherit; }
+  .laporan-actions { display:flex; gap:8px; margin-top:20px; justify-content:flex-end; }
+
+  /* SENTIMEN CHART */
+  .sentimen-layout { display:grid; grid-template-columns:1fr 1fr; gap:24px; margin-top:16px; }
+  .chart-box { background:var(--bg); border-radius:12px; padding:20px; display:flex; align-items:center; justify-content:center; min-height:260px; }
+  .stats-row { display:flex; gap:16px; margin-bottom:20px; }
+  .stat-card { flex:1; background:var(--bg); border-radius:10px; padding:16px; text-align:center; }
+  .stat-num { font-size:28px; font-weight:800; }
+  .stat-label { font-size:11px; font-weight:600; color:var(--text2); text-transform:uppercase; letter-spacing:0.5px; }
+  .stat-positive .stat-num { color:var(--positive); }
+  .stat-negative .stat-num { color:var(--negative); }
+  .stat-neutral .stat-num { color:var(--neutral); }
+
+  /* TOAST */
+  .toast { position:fixed; bottom:24px; right:24px; background:var(--primary); color:#fff; padding:14px 20px; border-radius:12px; font-size:13px; font-weight:500; z-index:9999; box-shadow:0 8px 24px rgba(26,60,94,0.3); transform:translateY(100px); opacity:0; transition:all .3s; }
+  .toast.show { transform:translateY(0); opacity:1; }
+
+  /* empty state */
+  .empty-state { text-align:center; padding:40px 20px; color:var(--text2); }
+  .empty-state .empty-icon { font-size:40px; margin-bottom:12px; }
+  .empty-state p { font-size:13px; }
+
+  @media print {
+    body * { visibility:hidden!important; }
+    #print-area, #print-area * { visibility:visible!important; }
+    #print-area { position:fixed!important; top:0!important; left:0!important; width:100%!important; z-index:99999!important; background:#fff!important; padding:32px 40px!important; }
+  }
+
+  /* PRINT MODAL */
+  .print-modal-overlay {
+    display:none; position:fixed; inset:0; background:rgba(0,0,0,0.55); z-index:9998; align-items:center; justify-content:center;
+  }
+  .print-modal-overlay.open { display:flex; }
+  .print-modal {
+    background:#fff; width:720px; max-height:92vh; overflow-y:auto; border-radius:16px;
+    box-shadow:0 20px 60px rgba(0,0,0,0.3);
+  }
+  .print-modal-bar {
+    display:flex; align-items:center; justify-content:space-between;
+    padding:16px 24px; border-bottom:1px solid #e0e0e0; background:#f8f9fa; border-radius:16px 16px 0 0;
+  }
+  .print-modal-bar span { font-size:14px; font-weight:700; color:#1a3c5e; }
+  .print-modal-btns { display:flex; gap:8px; }
+
+  /* PRINT DOCUMENT AREA */
+  #print-area {
+    background:#fff; padding:40px 48px; font-family:'Plus Jakarta Sans',sans-serif;
+  }
+  .print-header {
+    display:flex; align-items:center; gap:20px;
+    border:2.5px solid #222; border-radius:14px; padding:16px 24px; margin-bottom:28px;
+  }
+  .print-logo-circle {
+    width:72px; height:72px; border-radius:50%; border:2px solid #222;
+    display:flex; align-items:center; justify-content:center; font-size:11px; font-weight:700;
+    color:#222; flex-shrink:0; overflow:hidden;
+  }
+  .print-logo-circle img { width:100%; height:100%; object-fit:cover; border-radius:50%; }
+  .print-header-info {}
+  .print-header-name { font-size:26px; font-weight:800; color:#111; line-height:1.1; }
+  .print-header-addr { font-size:12px; color:#444; margin-top:4px; line-height:1.5; }
+  .print-doc-title { text-align:center; font-size:16px; font-weight:700; color:#111; margin-bottom:20px; text-transform:uppercase; letter-spacing:0.5px; }
+  .print-period { font-size:12px; color:#555; text-align:center; margin-bottom:20px; }
+
+  #print-area table { width:100%; border-collapse:collapse; font-size:12.5px; }
+  #print-area thead tr th {
+    background:#c8d0f5; color:#1a2535; padding:10px 12px;
+    border:1px solid #9ba8e0; text-align:left; font-weight:700; font-size:12px;
+  }
+  #print-area tbody tr td { padding:9px 12px; border:1px solid #c0c8e8; vertical-align:top; }
+  #print-area tbody tr:nth-child(even) td { background:#f4f6ff; }
+
+  .print-signature {
+    margin-top:56px; text-align:right;
+  }
+  .print-signature-label { font-size:13px; color:#222; margin-bottom:64px; }
+  .print-signature-name { font-size:13px; font-weight:700; color:#111; border-top:1.5px solid #333; display:inline-block; padding-top:6px; min-width:180px; text-align:center; }
+
+  /* sentimen print layout */
+  .print-sentimen-wrap { display:flex; gap:32px; align-items:flex-start; margin-top:8px; }
+  .print-chart-wrap { flex:0 0 260px; }
+</style>
+</head>
+<body>
+
+<!-- LOGIN -->
+<div id="login-screen">
+  <div class="login-card">
+    <div class="login-logo">TP</div>
+    <div class="login-title">Catering Tiga Putra</div>
+    <div class="login-sub">Analisa Sentimen Ulasan Pelanggan</div>
+    <div class="form-group">
+      <label>Username</label>
+      <input type="text" id="login-username" placeholder="Masukkan username">
+    </div>
+    <div class="form-group">
+      <label>Password</label>
+      <input type="password" id="login-password" placeholder="Masukkan password">
+    </div>
+    <button class="btn btn-primary btn-full" onclick="doLogin()">🔐 Login</button>
+    <p style="margin-top:16px;font-size:12px;color:var(--text2);">Default: admin / admin123</p>
+  </div>
+</div>
+
+<!-- MAIN APP -->
+<div id="app">
+  <div class="topbar">
+    <div class="topbar-brand">
+      <div class="topbar-logo">TP</div>
+      <div>
+        <div class="topbar-title">Catering Tiga Putra</div>
+        <div class="topbar-sub">Analisa Sentimen Ulasan Pelanggan</div>
+      </div>
+    </div>
+    <div class="topbar-actions">
+      <span class="topbar-user" id="topbar-user">👤 Admin</span>
+      <button class="btn btn-logout" onclick="doLogout()">Logout</button>
+    </div>
+  </div>
+  <div class="layout">
+    <div class="sidebar">
+      <div class="sidebar-section">
+        <div class="sidebar-label">Menu Utama</div>
+        <div class="nav-item active" onclick="showPage('dashboard')"><span class="nav-icon">🏠</span> Dashboard</div>
+        <div class="nav-item" onclick="showPage('user')"><span class="nav-icon">👥</span> Data User</div>
+        <div class="nav-item" onclick="showPage('karyawan')"><span class="nav-icon">👨‍💼</span> Data Karyawan</div>
+        <div class="nav-item" onclick="showPage('pelanggan')"><span class="nav-icon">🤝</span> Data Pelanggan</div>
+        <div class="nav-item" onclick="showPage('ulasan')"><span class="nav-icon">⭐</span> Data Ulasan</div>
+      </div>
+      <div class="sidebar-section">
+        <div class="sidebar-label">Laporan</div>
+        <div class="nav-item" onclick="showPage('laporan')"><span class="nav-icon">📊</span> Laporan</div>
+      </div>
+    </div>
+    <div class="main-content">
+
+      <!-- DASHBOARD -->
+      <div class="page active" id="page-dashboard">
+        <div class="section-header">
+          <div class="section-title">Menu Utama</div>
+        </div>
+        <div class="stats-row">
+          <div class="stat-card stat-positive"><div class="stat-num" id="dash-karyawan">0</div><div class="stat-label">Karyawan</div></div>
+          <div class="stat-card stat-neutral"><div class="stat-num" id="dash-pelanggan">0</div><div class="stat-label">Pelanggan</div></div>
+          <div class="stat-card"><div class="stat-num" id="dash-ulasan">0</div><div class="stat-label">Total Ulasan</div></div>
+          <div class="stat-card stat-positive"><div class="stat-num" id="dash-pos">0</div><div class="stat-label">Positif</div></div>
+          <div class="stat-card stat-negative"><div class="stat-num" id="dash-neg">0</div><div class="stat-label">Negatif</div></div>
+        </div>
+        <div class="menu-grid">
+          <div class="menu-card" onclick="showPage('user')"><div class="menu-card-icon">👤</div><div class="menu-card-title">Data User</div></div>
+          <div class="menu-card" onclick="showPage('karyawan')"><div class="menu-card-icon">👨‍💼</div><div class="menu-card-title">Data Karyawan</div></div>
+          <div class="menu-card" onclick="showPage('pelanggan')"><div class="menu-card-icon">🤝</div><div class="menu-card-title">Data Pelanggan</div></div>
+          <div class="menu-card" onclick="showPage('ulasan')"><div class="menu-card-icon">⭐</div><div class="menu-card-title">Data Ulasan</div></div>
+          <div class="menu-card" onclick="showPage('laporan')"><div class="menu-card-icon">📊</div><div class="menu-card-title">Laporan</div></div>
+        </div>
+      </div>
+
+      <!-- DATA USER -->
+      <div class="page" id="page-user">
+        <div class="section-header">
+          <div class="section-title">Data User</div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('dashboard')">← Kembali</button>
+        </div>
+        <div class="form-card">
+          <div class="form-card-title">Form Data User</div>
+          <div class="form-row">
+            <div class="form-group"><label>ID User</label><input id="u-id" placeholder="Auto generate" readonly style="background:#e8edf5;color:#888"></div>
+            <div class="form-group"><label>Username</label><input id="u-username" placeholder="Masukkan username"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Password</label><input id="u-password" type="password" placeholder="Masukkan password"></div>
+            <div class="form-group"><label>Role</label>
+              <select id="u-role"><option value="admin">Admin</option><option value="operator">Operator</option></select>
+            </div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-success" onclick="tambahUser()">➕ Tambah</button>
+            <button class="btn btn-accent" onclick="ubahUser()">✏️ Ubah</button>
+            <button class="btn btn-danger" onclick="hapusUser()">🗑️ Hapus</button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span style="font-size:13px;font-weight:600;color:var(--primary)">Daftar User</span>
+            <div class="search-box">
+              <input class="search-input" id="cari-user" placeholder="Cari user..." oninput="renderTableUser()">
+              <button class="btn btn-primary btn-sm" onclick="renderTableUser()">🔍 Cari</button>
+            </div>
+          </div>
+          <div id="tabel-user"></div>
+        </div>
+      </div>
+
+      <!-- DATA KARYAWAN -->
+      <div class="page" id="page-karyawan">
+        <div class="section-header">
+          <div class="section-title">Data Karyawan</div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('dashboard')">← Kembali</button>
+        </div>
+        <div class="form-card">
+          <div class="form-card-title">Form Data Karyawan</div>
+          <div class="form-row">
+            <div class="form-group"><label>ID Karyawan</label><input id="k-id" placeholder="Auto generate" readonly style="background:#e8edf5;color:#888"></div>
+            <div class="form-group"><label>Nama Karyawan</label><input id="k-nama" placeholder="Masukkan nama"></div>
+          </div>
+          <div class="form-group"><label>Jenis Kelamin</label>
+            <div class="radio-group">
+              <label class="radio-item"><input type="radio" name="k-jk" value="Laki-laki" checked> Laki-laki</label>
+              <label class="radio-item"><input type="radio" name="k-jk" value="Perempuan"> Perempuan</label>
+            </div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Role Pekerjaan</label><input id="k-pekerjaan" placeholder="Contoh: Chef, Kasir, Kurir"></div>
+            <div class="form-group"><label>Kontak</label><input id="k-kontak" placeholder="No. HP / Email"></div>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-success" onclick="tambahKaryawan()">➕ Tambah</button>
+            <button class="btn btn-accent" onclick="ubahKaryawan()">✏️ Ubah</button>
+            <button class="btn btn-danger" onclick="hapusKaryawan()">🗑️ Hapus</button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span style="font-size:13px;font-weight:600;color:var(--primary)">Daftar Karyawan</span>
+            <div class="search-box">
+              <input class="search-input" id="cari-karyawan" placeholder="Cari karyawan..." oninput="renderTableKaryawan()">
+              <button class="btn btn-primary btn-sm" onclick="renderTableKaryawan()">🔍 Cari</button>
+            </div>
+          </div>
+          <div id="tabel-karyawan"></div>
+        </div>
+      </div>
+
+      <!-- DATA PELANGGAN -->
+      <div class="page" id="page-pelanggan">
+        <div class="section-header">
+          <div class="section-title">Data Pelanggan</div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('dashboard')">← Kembali</button>
+        </div>
+        <div class="form-card">
+          <div class="form-card-title">Form Data Pelanggan</div>
+          <div class="form-row">
+            <div class="form-group"><label>ID Pelanggan</label><input id="p-id" placeholder="Auto generate" readonly style="background:#e8edf5;color:#888"></div>
+            <div class="form-group"><label>Nama Pelanggan</label><input id="p-nama" placeholder="Masukkan nama"></div>
+          </div>
+          <div class="form-group"><label>Alamat</label><textarea id="p-alamat" placeholder="Masukkan alamat lengkap" rows="2"></textarea></div>
+          <div class="form-group"><label>Kontak</label><input id="p-kontak" placeholder="No. HP / Email"></div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-success" onclick="tambahPelanggan()">➕ Tambah</button>
+            <button class="btn btn-accent" onclick="ubahPelanggan()">✏️ Ubah</button>
+            <button class="btn btn-danger" onclick="hapusPelanggan()">🗑️ Hapus</button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span style="font-size:13px;font-weight:600;color:var(--primary)">Daftar Pelanggan</span>
+            <div class="search-box">
+              <input class="search-input" id="cari-pelanggan" placeholder="Cari pelanggan..." oninput="renderTablePelanggan()">
+              <button class="btn btn-primary btn-sm" onclick="renderTablePelanggan()">🔍 Cari</button>
+            </div>
+          </div>
+          <div id="tabel-pelanggan"></div>
+        </div>
+      </div>
+
+      <!-- DATA ULASAN -->
+      <div class="page" id="page-ulasan">
+        <div class="section-header">
+          <div class="section-title">Data Ulasan Pesanan</div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('dashboard')">← Kembali</button>
+        </div>
+        <div class="form-card">
+          <div class="form-card-title">Form Data Ulasan</div>
+          <div class="form-row">
+            <div class="form-group"><label>ID Pesanan</label><input id="ul-id" placeholder="Auto generate" readonly style="background:#e8edf5;color:#888"></div>
+            <div class="form-group"><label>Waktu Pesanan</label><input type="datetime-local" id="ul-waktu"></div>
+          </div>
+          <div class="form-row">
+            <div class="form-group"><label>Pelanggan</label>
+              <select id="ul-pelanggan"><option value="">-- Pilih Pelanggan --</option></select>
+            </div>
+            <div class="form-group"><label>PIC Karyawan</label>
+              <select id="ul-karyawan"><option value="">-- Pilih Karyawan --</option></select>
+            </div>
+          </div>
+          <div class="form-group"><label>Isi Ulasan</label>
+            <textarea id="ul-ulasan" placeholder="Tuliskan ulasan pelanggan di sini..." rows="3"></textarea>
+          </div>
+          <div style="display:flex;gap:8px;margin-top:8px;">
+            <button class="btn btn-success" onclick="tambahUlasan()">➕ Tambah</button>
+            <button class="btn btn-accent" onclick="ubahUlasan()">✏️ Ubah</button>
+            <button class="btn btn-danger" onclick="hapusUlasan()">🗑️ Hapus</button>
+          </div>
+        </div>
+        <div class="table-card">
+          <div class="table-toolbar">
+            <span style="font-size:13px;font-weight:600;color:var(--primary)">Daftar Ulasan</span>
+            <div class="search-box">
+              <input class="search-input" id="cari-ulasan" placeholder="Cari ulasan..." oninput="renderTableUlasan()">
+              <button class="btn btn-primary btn-sm" onclick="renderTableUlasan()">🔍 Cari</button>
+            </div>
+          </div>
+          <div id="tabel-ulasan"></div>
+        </div>
+      </div>
+
+      <!-- LAPORAN -->
+      <div class="page" id="page-laporan">
+        <div class="section-header">
+          <div class="section-title">Laporan</div>
+          <button class="btn btn-outline btn-sm" onclick="showPage('dashboard')">← Kembali</button>
+        </div>
+        <div class="laporan-layout">
+          <div class="laporan-menu">
+            <div class="laporan-menu-item active" onclick="showLaporan('karyawan',this)">👨‍💼 Laporan Karyawan</div>
+            <div class="laporan-menu-item" onclick="showLaporan('pelanggan',this)">🤝 Laporan Pelanggan</div>
+            <div class="laporan-menu-item" onclick="showLaporan('ulasan',this)">⭐ Laporan Ulasan</div>
+            <div class="laporan-menu-item" onclick="showLaporan('sentimen',this)">📊 Laporan Statistik Sentimen</div>
+          </div>
+          <div class="laporan-content">
+            <div id="laporan-karyawan-view">
+              <div class="laporan-title">Laporan Karyawan</div>
+              <div class="date-filter">
+                <label>Dari</label><input type="date" class="date-input" id="lk-dari">
+                <label>Sampai</label><input type="date" class="date-input" id="lk-sampai">
+                <button class="btn btn-primary btn-sm" onclick="renderLaporanKaryawan()">📋 Tampilkan</button>
+              </div>
+              <div id="lap-karyawan-tabel"></div>
+              <div class="laporan-actions"><button class="btn btn-success btn-sm" onclick="openCetak('karyawan')">🖨️ Cetak</button></div>
+            </div>
+            <div id="laporan-pelanggan-view" style="display:none">
+              <div class="laporan-title">Laporan Pelanggan</div>
+              <div class="date-filter">
+                <label>Dari</label><input type="date" class="date-input" id="lp-dari">
+                <label>Sampai</label><input type="date" class="date-input" id="lp-sampai">
+                <button class="btn btn-primary btn-sm" onclick="renderLaporanPelanggan()">📋 Tampilkan</button>
+              </div>
+              <div id="lap-pelanggan-tabel"></div>
+              <div class="laporan-actions"><button class="btn btn-success btn-sm" onclick="openCetak('pelanggan')">🖨️ Cetak</button></div>
+            </div>
+            <div id="laporan-ulasan-view" style="display:none">
+              <div class="laporan-title">Laporan Ulasan Pesanan</div>
+              <div class="date-filter">
+                <label>Dari</label><input type="date" class="date-input" id="lu-dari">
+                <label>Sampai</label><input type="date" class="date-input" id="lu-sampai">
+                <button class="btn btn-primary btn-sm" onclick="renderLaporanUlasan()">📋 Tampilkan</button>
+              </div>
+              <div id="lap-ulasan-tabel"></div>
+              <div class="laporan-actions"><button class="btn btn-success btn-sm" onclick="openCetak('ulasan')">🖨️ Cetak</button></div>
+            </div>
+            <div id="laporan-sentimen-view" style="display:none">
+              <div class="laporan-title">Laporan Statistik Sentimen</div>
+              <div class="date-filter">
+                <label>Dari</label><input type="date" class="date-input" id="ls-dari">
+                <label>Sampai</label><input type="date" class="date-input" id="ls-sampai">
+                <button class="btn btn-primary btn-sm" onclick="renderLaporanSentimen()">📋 Tampilkan</button>
+              </div>
+              <div class="sentimen-layout">
+                <div class="chart-box"><canvas id="sentimen-chart" width="260" height="260"></canvas></div>
+                <div>
+                  <div id="sentimen-tabel"></div>
+                </div>
+              </div>
+              <div class="laporan-actions"><button class="btn btn-success btn-sm" onclick="openCetak('sentimen')">🖨️ Cetak</button></div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+    </div>
+  </div>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<!-- PRINT MODAL -->
+<div class="print-modal-overlay" id="print-modal-overlay" onclick="closePrintModal(event)">
+  <div class="print-modal" onclick="event.stopPropagation()">
+    <div class="print-modal-bar">
+      <span>🖨️ Preview Cetak Laporan</span>
+      <div class="print-modal-btns">
+        <button class="btn btn-success btn-sm" onclick="doCetak()">🖨️ Cetak / Simpan PDF</button>
+        <button class="btn btn-outline btn-sm" onclick="closePrintModal()">✕ Tutup</button>
+      </div>
+    </div>
+    <div id="print-area"></div>
+  </div>
+</div>
+
+<script>
+// ===================== DATA STORE =====================
+let db = {
+  users: [{ id:'USR001', username:'admin', password:'admin123', role:'admin' }],
+  karyawan: [],
+  pelanggan: [],
+  ulasan: [],
+  currentUser: null,
+  editMode: { user: null, karyawan: null, pelanggan: null, ulasan: null }
+};
+
+// ===================== NAIVE BAYES SENTIMEN =====================
+const positifKeywords = ['enak','lezat','mantap','bagus','baik','puas','suka','senang','recommended','memuaskan','ramah','cepat','tepat','bersih','fresh','segar','nikmat','sempurna','terbaik','keren','murah','hemat','oke','ok','gampang','mudah','menarik','menggugah','wangi','gurih','manis','spesial','luar biasa','sangat baik','sangat bagus','sangat puas','sangat enak','top'];
+const negatifKeywords = ['tidak enak','tidak bagus','tidak puas','jelek','buruk','lambat','lama','kotor','bau','mahal','kecewa','mengecewakan','pahit','asin','hambar','tidak fresh','tidak segar','menyesal','parah','tidak sesuai','tidak cocok','salah','tertipu','menggangu','tidak rapi','rusak','kurang','tidak direkomendasikan','busuk','tidak tepat'];
+
+function analisaSentimen(teks) {
+  const lower = teks.toLowerCase();
+  let pos = 0, neg = 0;
+  positifKeywords.forEach(k => { if(lower.includes(k)) pos++; });
+  negatifKeywords.forEach(k => { if(lower.includes(k)) neg++; });
+  if(pos > neg) return 'Positif';
+  if(neg > pos) return 'Negatif';
+  return 'Netral';
+}
+
+// ===================== AUTH =====================
+function doLogin() {
+  const u = document.getElementById('login-username').value.trim();
+  const p = document.getElementById('login-password').value.trim();
+  const found = db.users.find(x => x.username===u && x.password===p);
+  if(found) {
+    db.currentUser = found;
+    document.getElementById('login-screen').style.display='none';
+    document.getElementById('app').style.display='block';
+    document.getElementById('topbar-user').textContent='👤 '+found.username;
+    updateDashboard();
+    renderAllTables();
+    showToast('Selamat datang, '+found.username+'!');
+  } else {
+    showToast('Username atau password salah!');
+  }
+}
+function doLogout() {
+  db.currentUser=null;
+  document.getElementById('app').style.display='none';
+  document.getElementById('login-screen').style.display='flex';
+  document.getElementById('login-username').value='';
+  document.getElementById('login-password').value='';
+}
+
+// ===================== NAVIGATION =====================
+function showPage(name) {
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  document.getElementById('page-'+name).classList.add('active');
+  document.querySelectorAll('.nav-item').forEach(n=>{ if(n.textContent.toLowerCase().includes(name)) n.classList.add('active'); });
+  if(name==='ulasan'){ updateSelectPelanggan(); updateSelectKaryawan(); }
+  if(name==='laporan'){ showLaporan('karyawan', document.querySelector('.laporan-menu-item')); }
+  if(name==='dashboard') updateDashboard();
+}
+function showLaporan(type, el) {
+  document.querySelectorAll('.laporan-menu-item').forEach(i=>i.classList.remove('active'));
+  if(el) el.classList.add('active');
+  document.querySelectorAll('[id^="laporan-"][id$="-view"]').forEach(v=>v.style.display='none');
+  document.getElementById('laporan-'+type+'-view').style.display='block';
+  if(type==='karyawan') renderLaporanKaryawan();
+  if(type==='pelanggan') renderLaporanPelanggan();
+  if(type==='ulasan') renderLaporanUlasan();
+  if(type==='sentimen') renderLaporanSentimen();
+}
+
+// ===================== TOAST =====================
+function showToast(msg) {
+  const t=document.getElementById('toast');
+  t.textContent=msg; t.classList.add('show');
+  setTimeout(()=>t.classList.remove('show'),2500);
+}
+
+// ===================== ID GENERATOR =====================
+function genId(prefix, arr) {
+  const nums = arr.map(x=>parseInt(x.id.replace(prefix,''))||0);
+  const next = nums.length ? Math.max(...nums)+1 : 1;
+  return prefix + String(next).padStart(3,'0');
+}
+
+// ===================== USER CRUD =====================
+function tambahUser() {
+  const u = document.getElementById('u-username').value.trim();
+  const p = document.getElementById('u-password').value.trim();
+  const r = document.getElementById('u-role').value;
+  if(!u||!p){ showToast('Isi semua field!'); return; }
+  if(db.users.find(x=>x.username===u)){ showToast('Username sudah ada!'); return; }
+  db.users.push({id:genId('USR',db.users),username:u,password:p,role:r});
+  clearFormUser(); renderTableUser(); showToast('User berhasil ditambahkan!');
+}
+function pilihUser(id) {
+  const x=db.users.find(u=>u.id===id);
+  if(!x) return;
+  document.getElementById('u-id').value=x.id;
+  document.getElementById('u-username').value=x.username;
+  document.getElementById('u-password').value=x.password;
+  document.getElementById('u-role').value=x.role;
+  db.editMode.user=id;
+}
+function ubahUser() {
+  const id=db.editMode.user;
+  if(!id){ showToast('Pilih user dari tabel terlebih dahulu!'); return; }
+  const x=db.users.find(u=>u.id===id);
+  x.username=document.getElementById('u-username').value.trim();
+  x.password=document.getElementById('u-password').value.trim();
+  x.role=document.getElementById('u-role').value;
+  clearFormUser(); renderTableUser(); showToast('User berhasil diubah!');
+}
+function hapusUser() {
+  const id=db.editMode.user;
+  if(!id){ showToast('Pilih user dari tabel terlebih dahulu!'); return; }
+  if(!confirm('Hapus user ini?')) return;
+  db.users=db.users.filter(u=>u.id!==id);
+  clearFormUser(); renderTableUser(); showToast('User dihapus!');
+}
+function clearFormUser() { document.getElementById('u-id').value=''; document.getElementById('u-username').value=''; document.getElementById('u-password').value=''; document.getElementById('u-role').value='admin'; db.editMode.user=null; }
+function renderTableUser() {
+  const q=document.getElementById('cari-user').value.toLowerCase();
+  const filtered=db.users.filter(x=>x.username.toLowerCase().includes(q)||x.role.toLowerCase().includes(q));
+  const el=document.getElementById('tabel-user');
+  if(!filtered.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Tidak ada data</p></div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Username</th><th>Role</th><th>Aksi</th></tr></thead><tbody>`
+    +filtered.map(x=>`<tr><td>${x.id}</td><td>${x.username}</td><td>${x.role}</td><td><div class="action-btns"><button class="btn btn-accent btn-sm" onclick="pilihUser('${x.id}')">Pilih</button></div></td></tr>`).join('')
+    +`</tbody></table>`;
+}
+
+// ===================== KARYAWAN CRUD =====================
+function tambahKaryawan() {
+  const n=document.getElementById('k-nama').value.trim();
+  const jk=document.querySelector('input[name="k-jk"]:checked').value;
+  const p=document.getElementById('k-pekerjaan').value.trim();
+  const k=document.getElementById('k-kontak').value.trim();
+  if(!n||!p){ showToast('Isi nama dan pekerjaan!'); return; }
+  db.karyawan.push({id:genId('KRY',db.karyawan),nama:n,jk,pekerjaan:p,kontak:k});
+  clearFormKaryawan(); renderTableKaryawan(); updateDashboard(); showToast('Karyawan berhasil ditambahkan!');
+}
+function pilihKaryawan(id) {
+  const x=db.karyawan.find(k=>k.id===id);
+  if(!x) return;
+  document.getElementById('k-id').value=x.id;
+  document.getElementById('k-nama').value=x.nama;
+  document.querySelector(`input[name="k-jk"][value="${x.jk}"]`).checked=true;
+  document.getElementById('k-pekerjaan').value=x.pekerjaan;
+  document.getElementById('k-kontak').value=x.kontak;
+  db.editMode.karyawan=id;
+}
+function ubahKaryawan() {
+  const id=db.editMode.karyawan;
+  if(!id){ showToast('Pilih karyawan dari tabel!'); return; }
+  const x=db.karyawan.find(k=>k.id===id);
+  x.nama=document.getElementById('k-nama').value.trim();
+  x.jk=document.querySelector('input[name="k-jk"]:checked').value;
+  x.pekerjaan=document.getElementById('k-pekerjaan').value.trim();
+  x.kontak=document.getElementById('k-kontak').value.trim();
+  clearFormKaryawan(); renderTableKaryawan(); showToast('Karyawan berhasil diubah!');
+}
+function hapusKaryawan() {
+  const id=db.editMode.karyawan;
+  if(!id){ showToast('Pilih karyawan dari tabel!'); return; }
+  if(!confirm('Hapus karyawan ini?')) return;
+  db.karyawan=db.karyawan.filter(k=>k.id!==id);
+  clearFormKaryawan(); renderTableKaryawan(); updateDashboard(); showToast('Karyawan dihapus!');
+}
+function clearFormKaryawan() { document.getElementById('k-id').value=''; document.getElementById('k-nama').value=''; document.getElementById('k-pekerjaan').value=''; document.getElementById('k-kontak').value=''; db.editMode.karyawan=null; }
+function renderTableKaryawan() {
+  const q=document.getElementById('cari-karyawan').value.toLowerCase();
+  const filtered=db.karyawan.filter(x=>x.nama.toLowerCase().includes(q)||x.pekerjaan.toLowerCase().includes(q));
+  const el=document.getElementById('tabel-karyawan');
+  if(!filtered.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada data karyawan</p></div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nama</th><th>Jenis Kelamin</th><th>Pekerjaan</th><th>Kontak</th><th>Aksi</th></tr></thead><tbody>`
+    +filtered.map(x=>`<tr><td>${x.id}</td><td>${x.nama}</td><td>${x.jk}</td><td>${x.pekerjaan}</td><td>${x.kontak}</td><td><button class="btn btn-accent btn-sm" onclick="pilihKaryawan('${x.id}')">Pilih</button></td></tr>`).join('')
+    +`</tbody></table>`;
+}
+
+// ===================== PELANGGAN CRUD =====================
+function tambahPelanggan() {
+  const n=document.getElementById('p-nama').value.trim();
+  const a=document.getElementById('p-alamat').value.trim();
+  const k=document.getElementById('p-kontak').value.trim();
+  if(!n){ showToast('Isi nama pelanggan!'); return; }
+  db.pelanggan.push({id:genId('PLG',db.pelanggan),nama:n,alamat:a,kontak:k});
+  clearFormPelanggan(); renderTablePelanggan(); updateDashboard(); showToast('Pelanggan berhasil ditambahkan!');
+}
+function pilihPelanggan(id) {
+  const x=db.pelanggan.find(p=>p.id===id);
+  if(!x) return;
+  document.getElementById('p-id').value=x.id;
+  document.getElementById('p-nama').value=x.nama;
+  document.getElementById('p-alamat').value=x.alamat;
+  document.getElementById('p-kontak').value=x.kontak;
+  db.editMode.pelanggan=id;
+}
+function ubahPelanggan() {
+  const id=db.editMode.pelanggan;
+  if(!id){ showToast('Pilih pelanggan dari tabel!'); return; }
+  const x=db.pelanggan.find(p=>p.id===id);
+  x.nama=document.getElementById('p-nama').value.trim();
+  x.alamat=document.getElementById('p-alamat').value.trim();
+  x.kontak=document.getElementById('p-kontak').value.trim();
+  clearFormPelanggan(); renderTablePelanggan(); showToast('Pelanggan berhasil diubah!');
+}
+function hapusPelanggan() {
+  const id=db.editMode.pelanggan;
+  if(!id){ showToast('Pilih pelanggan dari tabel!'); return; }
+  if(!confirm('Hapus pelanggan ini?')) return;
+  db.pelanggan=db.pelanggan.filter(p=>p.id!==id);
+  clearFormPelanggan(); renderTablePelanggan(); updateDashboard(); showToast('Pelanggan dihapus!');
+}
+function clearFormPelanggan() { document.getElementById('p-id').value=''; document.getElementById('p-nama').value=''; document.getElementById('p-alamat').value=''; document.getElementById('p-kontak').value=''; db.editMode.pelanggan=null; }
+function renderTablePelanggan() {
+  const q=document.getElementById('cari-pelanggan').value.toLowerCase();
+  const filtered=db.pelanggan.filter(x=>x.nama.toLowerCase().includes(q)||x.alamat.toLowerCase().includes(q));
+  const el=document.getElementById('tabel-pelanggan');
+  if(!filtered.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada data pelanggan</p></div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nama</th><th>Alamat</th><th>Kontak</th><th>Aksi</th></tr></thead><tbody>`
+    +filtered.map(x=>`<tr><td>${x.id}</td><td>${x.nama}</td><td>${x.alamat}</td><td>${x.kontak}</td><td><button class="btn btn-accent btn-sm" onclick="pilihPelanggan('${x.id}')">Pilih</button></td></tr>`).join('')
+    +`</tbody></table>`;
+}
+
+// ===================== ULASAN CRUD =====================
+function updateSelectPelanggan() {
+  const sel=document.getElementById('ul-pelanggan');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- Pilih Pelanggan --</option>'+db.pelanggan.map(p=>`<option value="${p.id}">${p.nama}</option>`).join('');
+  sel.value=cur;
+}
+function updateSelectKaryawan() {
+  const sel=document.getElementById('ul-karyawan');
+  const cur=sel.value;
+  sel.innerHTML='<option value="">-- Pilih Karyawan --</option>'+db.karyawan.map(k=>`<option value="${k.id}">${k.nama}</option>`).join('');
+  sel.value=cur;
+}
+function tambahUlasan() {
+  const pid=document.getElementById('ul-pelanggan').value;
+  const kid=document.getElementById('ul-karyawan').value;
+  const waktu=document.getElementById('ul-waktu').value;
+  const isi=document.getElementById('ul-ulasan').value.trim();
+  if(!pid||!kid||!isi){ showToast('Isi semua field!'); return; }
+  const sentimen=analisaSentimen(isi);
+  const plg=db.pelanggan.find(p=>p.id===pid);
+  const kry=db.karyawan.find(k=>k.id===kid);
+  db.ulasan.push({id:genId('ULS',db.ulasan),pelangganId:pid,pelangganNama:plg?plg.nama:pid,karyawanId:kid,karyawanNama:kry?kry.nama:kid,waktu,ulasan:isi,sentimen});
+  clearFormUlasan(); renderTableUlasan(); updateDashboard(); showToast(`Ulasan ditambahkan! Sentimen: ${sentimen}`);
+}
+function pilihUlasan(id) {
+  const x=db.ulasan.find(u=>u.id===id);
+  if(!x) return;
+  document.getElementById('ul-id').value=x.id;
+  document.getElementById('ul-pelanggan').value=x.pelangganId;
+  document.getElementById('ul-karyawan').value=x.karyawanId;
+  document.getElementById('ul-waktu').value=x.waktu;
+  document.getElementById('ul-ulasan').value=x.ulasan;
+  db.editMode.ulasan=id;
+}
+function ubahUlasan() {
+  const id=db.editMode.ulasan;
+  if(!id){ showToast('Pilih ulasan dari tabel!'); return; }
+  const x=db.ulasan.find(u=>u.id===id);
+  const isi=document.getElementById('ul-ulasan').value.trim();
+  x.pelangganId=document.getElementById('ul-pelanggan').value;
+  x.karyawanId=document.getElementById('ul-karyawan').value;
+  const plg=db.pelanggan.find(p=>p.id===x.pelangganId);
+  const kry=db.karyawan.find(k=>k.id===x.karyawanId);
+  x.pelangganNama=plg?plg.nama:x.pelangganId;
+  x.karyawanNama=kry?kry.nama:x.karyawanId;
+  x.waktu=document.getElementById('ul-waktu').value;
+  x.ulasan=isi;
+  x.sentimen=analisaSentimen(isi);
+  clearFormUlasan(); renderTableUlasan(); updateDashboard(); showToast('Ulasan berhasil diubah!');
+}
+function hapusUlasan() {
+  const id=db.editMode.ulasan;
+  if(!id){ showToast('Pilih ulasan dari tabel!'); return; }
+  if(!confirm('Hapus ulasan ini?')) return;
+  db.ulasan=db.ulasan.filter(u=>u.id!==id);
+  clearFormUlasan(); renderTableUlasan(); updateDashboard(); showToast('Ulasan dihapus!');
+}
+function clearFormUlasan() { document.getElementById('ul-id').value=''; document.getElementById('ul-pelanggan').value=''; document.getElementById('ul-karyawan').value=''; document.getElementById('ul-waktu').value=''; document.getElementById('ul-ulasan').value=''; db.editMode.ulasan=null; }
+function renderTableUlasan() {
+  const q=document.getElementById('cari-ulasan').value.toLowerCase();
+  const filtered=db.ulasan.filter(x=>x.pelangganNama.toLowerCase().includes(q)||x.ulasan.toLowerCase().includes(q)||x.sentimen.toLowerCase().includes(q));
+  const el=document.getElementById('tabel-ulasan');
+  if(!filtered.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Belum ada data ulasan</p></div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Pelanggan</th><th>Karyawan</th><th>Waktu</th><th>Ulasan</th><th>Sentimen</th><th>Aksi</th></tr></thead><tbody>`
+    +filtered.map(x=>`<tr><td>${x.id}</td><td>${x.pelangganNama}</td><td>${x.karyawanNama}</td><td>${x.waktu?x.waktu.replace('T',' '):'-'}</td><td style="max-width:200px;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${x.ulasan}</td><td><span class="badge badge-${x.sentimen.toLowerCase()}">${x.sentimen}</span></td><td><button class="btn btn-accent btn-sm" onclick="pilihUlasan('${x.id}')">Pilih</button></td></tr>`).join('')
+    +`</tbody></table>`;
+}
+
+// ===================== LAPORAN =====================
+function filterByDate(arr, dariId, sampaiId, keyDate) {
+  const dari=document.getElementById(dariId).value;
+  const sampai=document.getElementById(sampaiId).value;
+  if(!dari&&!sampai) return arr;
+  return arr.filter(x=>{
+    const d=x[keyDate]?(x[keyDate].split('T')[0]):'';
+    if(dari&&d&&d<dari) return false;
+    if(sampai&&d&&d>sampai) return false;
+    return true;
+  });
+}
+function renderLaporanKaryawan() {
+  const data=db.karyawan;
+  const el=document.getElementById('lap-karyawan-tabel');
+  if(!data.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Tidak ada data</p></div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nama</th><th>Jenis Kelamin</th><th>Pekerjaan</th><th>Kontak</th></tr></thead><tbody>`
+    +data.map(x=>`<tr><td>${x.id}</td><td>${x.nama}</td><td>${x.jk}</td><td>${x.pekerjaan}</td><td>${x.kontak}</td></tr>`).join('')
+    +`</tbody></table><p style="margin-top:12px;font-size:12px;color:var(--text2)">Total: ${data.length} karyawan</p>`;
+}
+function renderLaporanPelanggan() {
+  const data=db.pelanggan;
+  const el=document.getElementById('lap-pelanggan-tabel');
+  if(!data.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Tidak ada data</p></div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Nama</th><th>Alamat</th><th>Kontak</th></tr></thead><tbody>`
+    +data.map(x=>`<tr><td>${x.id}</td><td>${x.nama}</td><td>${x.alamat}</td><td>${x.kontak}</td></tr>`).join('')
+    +`</tbody></table><p style="margin-top:12px;font-size:12px;color:var(--text2)">Total: ${data.length} pelanggan</p>`;
+}
+function renderLaporanUlasan() {
+  const data=filterByDate(db.ulasan,'lu-dari','lu-sampai','waktu');
+  const el=document.getElementById('lap-ulasan-tabel');
+  if(!data.length){ el.innerHTML='<div class="empty-state"><div class="empty-icon">📭</div><p>Tidak ada data</p></div>'; return; }
+  el.innerHTML=`<table><thead><tr><th>ID</th><th>Pelanggan</th><th>Karyawan</th><th>Waktu</th><th>Ulasan</th><th>Sentimen</th></tr></thead><tbody>`
+    +data.map(x=>`<tr><td>${x.id}</td><td>${x.pelangganNama}</td><td>${x.karyawanNama}</td><td>${x.waktu?x.waktu.replace('T',' '):'-'}</td><td>${x.ulasan}</td><td><span class="badge badge-${x.sentimen.toLowerCase()}">${x.sentimen}</span></td></tr>`).join('')
+    +`</tbody></table><p style="margin-top:12px;font-size:12px;color:var(--text2)">Total: ${data.length} ulasan</p>`;
+}
+
+let sentimenChart = null;
+function renderLaporanSentimen() {
+  const data=filterByDate(db.ulasan,'ls-dari','ls-sampai','waktu');
+  const pos=data.filter(x=>x.sentimen==='Positif').length;
+  const neg=data.filter(x=>x.sentimen==='Negatif').length;
+  const net=data.filter(x=>x.sentimen==='Netral').length;
+  const total=data.length||1;
+  const pPos=(pos/total*100).toFixed(1);
+  const pNeg=(neg/total*100).toFixed(1);
+  const pNet=(net/total*100).toFixed(1);
+  const el=document.getElementById('sentimen-tabel');
+  el.innerHTML=`<table><thead><tr><th>Sentimen</th><th>Total</th><th>Persentase</th></tr></thead><tbody>
+    <tr><td><span class="badge badge-positive">Positif</span></td><td>${pos}</td><td>${pPos}%</td></tr>
+    <tr><td><span class="badge badge-negative">Negatif</span></td><td>${neg}</td><td>${pNeg}%</td></tr>
+    <tr><td><span class="badge badge-neutral">Netral</span></td><td>${net}</td><td>${pNet}%</td></tr>
+    <tr style="font-weight:600"><td>Total</td><td>${data.length}</td><td>100%</td></tr>
+  </tbody></table>`;
+  const ctx=document.getElementById('sentimen-chart').getContext('2d');
+  if(sentimenChart) sentimenChart.destroy();
+  sentimenChart=new Chart(ctx,{
+    type:'pie',
+    data:{
+      labels:['Positif','Negatif','Netral'],
+      datasets:[{data:[pos,neg,net],backgroundColor:['#27ae60','#e74c3c','#95a5a6'],borderWidth:2,borderColor:'#fff'}]
+    },
+    options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{family:'Plus Jakarta Sans',size:11}}}}}
+  });
+}
+
+// ===================== DASHBOARD UPDATE =====================
+function updateDashboard() {
+  document.getElementById('dash-karyawan').textContent=db.karyawan.length;
+  document.getElementById('dash-pelanggan').textContent=db.pelanggan.length;
+  document.getElementById('dash-ulasan').textContent=db.ulasan.length;
+  document.getElementById('dash-pos').textContent=db.ulasan.filter(x=>x.sentimen==='Positif').length;
+  document.getElementById('dash-neg').textContent=db.ulasan.filter(x=>x.sentimen==='Negatif').length;
+}
+function renderAllTables() { renderTableUser(); renderTableKaryawan(); renderTablePelanggan(); renderTableUlasan(); }
+
+// Set default login
+document.getElementById('login-username').value='admin';
+document.getElementById('login-password').value='admin123';
+document.getElementById('login-username').addEventListener('keypress',e=>{if(e.key==='Enter') doLogin();});
+document.getElementById('login-password').addEventListener('keypress',e=>{if(e.key==='Enter') doLogin();});
+
+// ===================== PRINT / CETAK =====================
+let printChartInstance = null;
+
+function printHeader(judulLaporan, periodeStr) {
+  return `
+    <div class="print-header">
+      <div class="print-logo-circle">
+        <img src="/mnt/user-data/uploads/Logo_20260302_095644_0003.png" onerror="this.style.display='none';this.parentElement.innerHTML='<span>LOGO</span>'">
+      </div>
+      <div class="print-header-info">
+        <div class="print-header-name">Catering 3 Putra</div>
+        <div class="print-header-addr">JL. Sawangan, Bumi Sawangan Indah D2 No.15,<br>Pengasinan, Depok, Kota Depok, Jawa Barat 16518</div>
+      </div>
+    </div>
+    <div class="print-doc-title">${judulLaporan}</div>
+    ${periodeStr ? `<div class="print-period">${periodeStr}</div>` : ''}
+  `;
+}
+
+function printSignature() {
+  const now = new Date();
+  const tgl = now.toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'});
+  return `
+    <div class="print-signature">
+      <div class="print-signature-label">Mengetahui Owner Catering 3 Putra<br><br>Depok, ${tgl}</div>
+      <br><br><br>
+      <div class="print-signature-name">Ibu Novita Sari</div>
+    </div>
+  `;
+}
+
+function getPeriodeStr(dariId, sampaiId) {
+  const d = document.getElementById(dariId).value;
+  const s = document.getElementById(sampaiId).value;
+  if(!d && !s) return 'Semua Periode';
+  const fmt = v => v ? new Date(v).toLocaleDateString('id-ID',{day:'2-digit',month:'long',year:'numeric'}) : '...';
+  return `Periode: ${fmt(d)} s/d ${fmt(s)}`;
+}
+
+function openCetak(type) {
+  const area = document.getElementById('print-area');
+  if(printChartInstance){ printChartInstance.destroy(); printChartInstance=null; }
+
+  if(type==='karyawan') {
+    const data = db.karyawan;
+    const periode = getPeriodeStr('lk-dari','lk-sampai');
+    let rows = data.length ? data.map(x=>`<tr><td>${x.id}</td><td>${x.nama}</td><td>${x.jk}</td><td>${x.pekerjaan}</td><td>${x.kontak||'-'}</td></tr>`).join('') : `<tr><td colspan="5" style="text-align:center;color:#999">Tidak ada data</td></tr>`;
+    area.innerHTML = printHeader('LAPORAN DATA KARYAWAN', periode)
+      + `<table><thead><tr><th>ID Karyawan</th><th>Nama</th><th>Jenis Kelamin</th><th>Pekerjaan</th><th>Kontak</th></tr></thead><tbody>${rows}</tbody></table>`
+      + `<p style="font-size:12px;color:#555;margin-top:10px">Total Karyawan: <strong>${data.length}</strong></p>`
+      + printSignature();
+  }
+  else if(type==='pelanggan') {
+    const data = db.pelanggan;
+    const periode = getPeriodeStr('lp-dari','lp-sampai');
+    let rows = data.length ? data.map(x=>`<tr><td>${x.id}</td><td>${x.nama}</td><td>${x.alamat||'-'}</td><td>${x.kontak||'-'}</td></tr>`).join('') : `<tr><td colspan="4" style="text-align:center;color:#999">Tidak ada data</td></tr>`;
+    area.innerHTML = printHeader('LAPORAN DATA PELANGGAN', periode)
+      + `<table><thead><tr><th>ID Pelanggan</th><th>Nama</th><th>Alamat</th><th>Kontak</th></tr></thead><tbody>${rows}</tbody></table>`
+      + `<p style="font-size:12px;color:#555;margin-top:10px">Total Pelanggan: <strong>${data.length}</strong></p>`
+      + printSignature();
+  }
+  else if(type==='ulasan') {
+    const data = filterByDate(db.ulasan,'lu-dari','lu-sampai','waktu');
+    const periode = getPeriodeStr('lu-dari','lu-sampai');
+    let rows = data.length ? data.map(x=>`<tr><td>${x.id}</td><td>${x.pelangganNama}</td><td>${x.karyawanNama}</td><td>${x.waktu?x.waktu.replace('T',' '):'-'}</td><td>${x.ulasan}</td><td>${x.sentimen}</td></tr>`).join('') : `<tr><td colspan="6" style="text-align:center;color:#999">Tidak ada data</td></tr>`;
+    area.innerHTML = printHeader('LAPORAN DATA ULASAN PESANAN', periode)
+      + `<table><thead><tr><th>ID</th><th>Pelanggan</th><th>Karyawan</th><th>Waktu</th><th>Isi Ulasan</th><th>Sentimen</th></tr></thead><tbody>${rows}</tbody></table>`
+      + `<p style="font-size:12px;color:#555;margin-top:10px">Total Ulasan: <strong>${data.length}</strong></p>`
+      + printSignature();
+  }
+  else if(type==='sentimen') {
+    const data = filterByDate(db.ulasan,'ls-dari','ls-sampai','waktu');
+    const periode = getPeriodeStr('ls-dari','ls-sampai');
+    const pos=data.filter(x=>x.sentimen==='Positif').length;
+    const neg=data.filter(x=>x.sentimen==='Negatif').length;
+    const net=data.filter(x=>x.sentimen==='Netral').length;
+    const total=data.length||1;
+    const pPos=(pos/total*100).toFixed(1), pNeg=(neg/total*100).toFixed(1), pNet=(net/total*100).toFixed(1);
+    area.innerHTML = printHeader('LAPORAN STATISTIK SENTIMEN ULASAN', periode)
+      + `<div class="print-sentimen-wrap">
+           <div class="print-chart-wrap"><canvas id="print-sentimen-canvas" width="240" height="240"></canvas></div>
+           <div style="flex:1">
+             <table><thead><tr><th>Sentimen</th><th>Total</th><th>Persentase</th></tr></thead><tbody>
+               <tr><td>Positif</td><td>${pos}</td><td>${pPos}%</td></tr>
+               <tr><td>Negatif</td><td>${neg}</td><td>${pNeg}%</td></tr>
+               <tr><td>Netral</td><td>${net}</td><td>${pNet}%</td></tr>
+               <tr style="font-weight:700;background:#eef"><td>Total</td><td>${data.length}</td><td>100%</td></tr>
+             </tbody></table>
+           </div>
+         </div>`
+      + printSignature();
+    setTimeout(()=>{
+      const ctx2=document.getElementById('print-sentimen-canvas').getContext('2d');
+      printChartInstance=new Chart(ctx2,{type:'pie',data:{labels:['Positif','Negatif','Netral'],datasets:[{data:[pos,neg,net],backgroundColor:['#27ae60','#e74c3c','#95a5a6'],borderWidth:2,borderColor:'#fff'}]},options:{responsive:false,plugins:{legend:{position:'bottom',labels:{font:{size:11}}}}}});
+    },100);
+  }
+
+  document.getElementById('print-modal-overlay').classList.add('open');
+}
+
+function closePrintModal(e) {
+  if(!e || e.target===document.getElementById('print-modal-overlay'))
+    document.getElementById('print-modal-overlay').classList.remove('open');
+}
+
+function doCetak() {
+  window.print();
+}
+</script>
+</body>
+</html>
